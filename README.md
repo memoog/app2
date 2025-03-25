@@ -195,6 +195,15 @@
       filter: blur(0.3vmin);
       transition: all 0.1s ease;
     }
+    /* Efecto de colisión para el vitrectomo */
+    .collision {
+      animation: collisionFlash 0.5s ease;
+    }
+    @keyframes collisionFlash {
+      0% { filter: brightness(1); }
+      50% { filter: brightness(2); }
+      100% { filter: brightness(1); }
+    }
     .vibrate #vitrectomo::after {
       animation: cutting 0.05s linear infinite;
     }
@@ -219,7 +228,7 @@
       background: rgba(255, 100, 100, 0.8);
     }
     /* ================== CONTROLES ================== */
-    /* Se eliminó el contenedor global de controles para integrar los sliders en los contenedores de cada joystick */
+    /* Se integran los sliders dentro de cada contenedor de joystick */
     .slider-container {
       display: flex;
       flex-direction: column;
@@ -305,6 +314,38 @@
       border-radius: 50%;
       position: relative;
       transition: transform 0.1s ease;
+    }
+    /* ================== RESPONSIVIDAD PARA TELÉFONOS ================== */
+    @media only screen and (max-width: 768px) {
+      #retina {
+        width: 90vmin;
+        height: 90vmin;
+      }
+      .joystick {
+        width: 80px;
+        height: 80px;
+      }
+      .joystick .joystick-handle {
+        width: 32px;
+        height: 32px;
+      }
+      .slider-container.z-control,
+      input[type="range"] {
+        width: 80px;
+      }
+      .joystick-container {
+        bottom: 10px;
+      }
+      #joystick-vitrectomo-container {
+        left: 5%;
+      }
+      #joystick-light-container {
+        right: 5%;
+      }
+      #miniMapContainer {
+        width: 250px;
+        height: 190px;
+      }
     }
   </style>
 </head>
@@ -457,18 +498,19 @@
     // Valores de joystick (normalizados 0 a 100)
     let lightJoystickX = 50, lightJoystickY = 50;
     let vitrectomoJoystickX = 50, vitrectomoJoystickY = 50;
-    // Sliders para distancia Z
+    // Sliders para instrumentos
     const vitrectomoZSlider = document.getElementById('vitrectomo-z-slider');
     const endoZSlider = document.getElementById('endo-z-slider');
     // Para el vitrectomo
     let currentVitScale = 1;
+    // Variables de alerta para evitar mensajes repetidos
     let alertStructureTriggered = false;
     let alertBloodTriggered = false;
     let alertRetinaDetachTriggered = false;
     let alertMiniMapTriggered = false;
     let alertPressureTriggered = false;
     let alertDepthWarningTriggered = false;
-    // Nuevas variables para alertas del endoiluminador
+    // Variable de alerta para el endoiluminador (estructura)
     let alertStructureLightTriggered = false;
     // Elementos de la retina
     const retinaSphere = document.querySelector('.retina-sphere');
@@ -478,7 +520,6 @@
     // Elementos para la luz
     const lightMask = document.getElementById('light-mask');
     const lightReflection = document.getElementById('light-reflection');
-    const distanceSlider = document.getElementById('distance-slider'); // Nota: si se requiere, se puede mantener un control global para la distancia de la retina
     // Instrumentos
     const endoilluminator = document.getElementById('endoilluminator');
     const vitrectomo = document.getElementById('vitrectomo');
@@ -502,14 +543,13 @@
       macula.style.opacity = 0.5 + (parallaxFactor * 0.3);
     }
     
-    // Actualiza la luz (máscara y reflexión) usando el slider del endoiluminador
+    // Actualiza la luz usando el slider del endoiluminador
     function updateMask() {
       const retinaRect = retina.getBoundingClientRect();
       const posX = (lightJoystickX / 100) * retinaRect.width;
       const posY = (lightJoystickY / 100) * retinaRect.height;
-      const baseSize = parseInt(endoZSlider.value); // controla el tamaño de la luz
-      // Si se utiliza un slider global para la distancia de la retina, se puede calcular un scaleFactor o tamaño ajustado
-      const adjustedSize = baseSize; 
+      const baseSize = parseInt(endoZSlider.value);
+      const adjustedSize = baseSize;
       
       lightMask.style.setProperty('--light-x', posX + 'px');
       lightMask.style.setProperty('--light-y', posY + 'px');
@@ -529,7 +569,7 @@
       updateMiniForceps();
     }
     
-    // Zoom con la rueda en la retina
+    // Zoom con la rueda sobre la retina
     retina.addEventListener('wheel', (e) => {
       e.preventDefault();
       if (e.deltaY < 0) {
@@ -589,13 +629,14 @@
       }
     }
     
+    let lightOn = false;
     function toggleLight() {
       lightOn = !lightOn;
       lightMask.style.display = lightOn ? 'block' : 'none';
       lightReflection.style.opacity = lightOn ? '1' : '0';
     }
     
-    let lightOn = false;
+    let vitrectomoOn = false;
     function toggleVitrectomo() {
       vitrectomoOn = !vitrectomoOn;
       if (vitrectomoOn) {
@@ -606,7 +647,7 @@
         stopVitrectomoAnimation();
       }
     }
-    let vitrectomoOn = false;
+    
     function startVitrectomoAnimation() {
       vitrectomoActive = true;
       animateVitrectomo();
@@ -616,7 +657,7 @@
       cancelAnimationFrame(vitrectomoAnimationFrame);
     }
     
-    // Rotación de la retina (cuando no se usan instrumentos)
+    // Rotación de la retina con mouse (cuando no se usan instrumentos)
     let mouseDown = false, initialX, initialY;
     retina.addEventListener('mousedown', (e) => {
       mouseDown = true;
@@ -632,7 +673,7 @@
       }
     });
     
-    // Función para actualizar la línea del mini mapa para el endoiluminador
+    // Actualiza la línea del mini mapa para el endoiluminador
     function updateMiniProbe() {
       const defaultTipX = 350;
       const defaultTipY = 300;
@@ -655,7 +696,7 @@
       miniProbeLightInner.setAttribute('stroke', strokeColor);
     }
     
-    // Función para actualizar la línea del mini mapa para el vitrectomo
+    // Actualiza la línea del mini mapa para el vitrectomo
     function updateMiniForceps() {
       const defaultTipX = 450;
       const scaleX = 2.5;
@@ -754,18 +795,20 @@
       const retinaCenterY = retinaRect.top + retinaRect.height / 2;
       const retinaRadius = retinaRect.width / 2;
       
-      // ALERTAS PARA EL VITRECTOMO
+      // ALERTAS PARA EL VITRECTOMO: Si su posición se acerca al borde, mostramos que ha chocado
       const vitX = (vitrectomoJoystickX / 100) * retinaRect.width + retinaRect.left;
       const vitY = (vitrectomoJoystickY / 100) * retinaRect.height + retinaRect.top;
       const dx = vitX - retinaCenterX;
       const dy = vitY - retinaCenterY;
       const distanceFromCenter = Math.sqrt(dx * dx + dy * dy);
       
-      // Aproximación al borde (fondo del ojo)
       if (distanceFromCenter > retinaRadius * 0.85) {
         if (!alertStructureTriggered) {
           alertStructureTriggered = true;
-          alert("Alerta: Aproximación al borde del fondo del ojo.");
+          alert("¡El Vitrectomo ha chocado con la pared del ojo!");
+          // Efecto visual de colisión
+          vitrectomo.classList.add("collision");
+          setTimeout(() => { vitrectomo.classList.remove("collision"); }, 500);
         }
       } else {
         alertStructureTriggered = false;
@@ -792,7 +835,7 @@
         alertBloodTriggered = false;
       }
       
-      // Alerta de desprendimiento de la retina
+      // Alerta de desprendimiento de retina
       if (currentDepth <= -250) {
         if (!alertRetinaDetachTriggered) {
           alertRetinaDetachTriggered = true;
@@ -802,7 +845,7 @@
         alertRetinaDetachTriggered = false;
       }
       
-      // Alerta de contacto con el iris o cristalino (mini mapa) – se utiliza el mini probe de la luz
+      // Alerta de contacto con el iris o cristalino (mini mapa)
       let miniTipX = parseFloat(miniProbeLight.getAttribute("x2"));
       let miniTipY = parseFloat(miniProbeLight.getAttribute("y2"));
       let dIris = Math.sqrt((miniTipX - 400) ** 2 + (miniTipY - 150) ** 2);
@@ -816,9 +859,9 @@
         alertMiniMapTriggered = false;
       }
       
-      // Alerta de presión alta
-      // (se activa cuando la distancia (en un slider global o variable) es alta; en este ejemplo, se utiliza la condición sobre currentDepth)
-      if (parseInt(distanceSlider.value) >= 350) {
+      // Alerta de presión alta (se usa un slider global si se necesita, en este ejemplo se usa una condición simulada)
+      // Aquí se puede mejorar la lógica de acuerdo a la necesidad
+      if (currentDepth > -60) {
         if (!alertPressureTriggered) {
           alertPressureTriggered = true;
           alert("Alerta: Presión alta. El nervio adyacente a la mácula se iluminará en blanco intenso.");
@@ -860,11 +903,7 @@
     }
     setInterval(checkAlerts, 250);
     
-    // EVENTOS DE SLIDERS (los controles globales que afecten la retina se pueden conservar si se desea)
-    // Si no se requiere el slider global de distancia, se puede comentar o eliminar.
-    if(distanceSlider) {
-      distanceSlider.addEventListener('input', updateMask);
-    }
+    // EVENTOS DE SLIDERS
     vitrectomoZSlider.addEventListener('input', updateVitrectomoPosition);
     endoZSlider.addEventListener('input', updateMask);
     const controls = document.querySelectorAll('input');
