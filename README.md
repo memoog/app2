@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Simulación de Vitrectomía con Profundidad 3D</title>
+  <title>Simulación de Vitrectomía 3D – Versión Móvil</title>
   <style>
     /* ================== ESTILOS GENERALES ================== */
     body {
@@ -35,14 +35,17 @@
       background: radial-gradient(circle at center, #400000 0%, #300000 40%, #200000 70%, #100000 90%);
       border-radius: 50%;
       transform: rotateX(20deg) translateZ(-150px);
-      box-shadow: inset 0 0 150px rgba(200, 0, 0, 0.3), inset 0 0 50px rgba(255, 0, 0, 0.2), 0 0 100px rgba(0, 0, 0, 0.9);
+      box-shadow: inset 0 0 150px rgba(200, 0, 0, 0.3),
+                  inset 0 0 50px rgba(255, 0, 0, 0.2),
+                  0 0 100px rgba(0, 0, 0, 0.9);
       overflow: hidden;
     }
     .retina-texture {
       position: absolute;
       width: 100%;
       height: 100%;
-      background: radial-gradient(circle at 50% 50%, rgba(255, 200, 200, 0.3) 0%, rgba(255, 150, 150, 0.2) 80%), url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="none" stroke="rgba(255, 100, 100, 0.2)" stroke-width="1"/></svg>');
+      background: radial-gradient(circle at 50% 50%, rgba(255, 200, 200, 0.3) 0%, rgba(255, 150, 150, 0.2) 80%),
+                  url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="none" stroke="rgba(255, 100, 100, 0.2)" stroke-width="1"/></svg>');
       background-size: 100%, 20px 20px;
       opacity: 0.9;
       border-radius: 50%;
@@ -66,7 +69,8 @@
       left: 50%;
       transform: translate(-50%, -50%);
       filter: blur(10px);
-      box-shadow: 0 0 30px rgba(255, 100, 100, 0.3), inset 0 0 20px rgba(255, 100, 100, 0.4);
+      box-shadow: 0 0 30px rgba(255, 100, 100, 0.3),
+                  inset 0 0 20px rgba(255, 100, 100, 0.4);
     }
     .optic-disc {
       position: absolute;
@@ -77,7 +81,8 @@
       top: 50%;
       left: 25%;
       transform: translate(-50%, -50%);
-      box-shadow: inset 0 0 15px rgba(200, 50, 50, 0.4), 0 0 20px rgba(200, 50, 50, 0.3);
+      box-shadow: inset 0 0 15px rgba(200, 50, 50, 0.4),
+                  0 0 20px rgba(200, 50, 50, 0.3);
     }
     .optic-cup {
       position: absolute;
@@ -131,7 +136,7 @@
       transition: opacity 0.3s ease;
       border-radius: 50%;
     }
-    /* Endoiluminador: su tamaño físico se mantiene fijo */
+    /* Endoiluminador */
     #endoilluminator {
       position: absolute;
       bottom: 40%;
@@ -165,7 +170,8 @@
       background: linear-gradient(to right, #888 0%, #aaa 15%, #ddd 30%, #fff 45%, #ddd 60%, #aaa 85%, #888 100%);
       border-radius: 1vmin;
       z-index: 150;
-      box-shadow: 0 0 15px rgba(0, 0, 0, 0.3), inset 0 0 10px rgba(255, 255, 255, 0.2);
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.3),
+                  inset 0 0 10px rgba(255, 255, 255, 0.2);
       transition: all 0.3s ease;
     }
     #vitrectomo::before {
@@ -191,7 +197,8 @@
       height: 4vmin;
       background: linear-gradient(45deg, #ff5555 0%, #ff2222 30%, #880000 100%);
       border-radius: 0.5vmin;
-      box-shadow: 0 0 15px rgba(255, 50, 50, 0.5), inset 0 0 5px rgba(0, 0, 0, 0.3);
+      box-shadow: 0 0 15px rgba(255, 50, 50, 0.5),
+                  inset 0 0 5px rgba(0, 0, 0, 0.3);
       filter: blur(0.3vmin);
       transition: all 0.1s ease;
     }
@@ -257,10 +264,11 @@
     /* ================== MINI MAP ================== */
     #miniMapContainer {
       position: absolute;
-      top: 20px;
-      right: 20px;
-      width: 300px;
-      height: 225px;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 280px;
+      height: 210px;
       overflow: hidden;
       border-radius: 10px;
       z-index: 2000;
@@ -273,78 +281,62 @@
     /* ================== JOYSTICK ================== */
     .joystick-container {
       position: absolute;
-      bottom: 20px;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
       z-index: 3000;
+      background: rgba(0, 0, 0, 0.5);
+      padding: 8px;
+      border-radius: 10px;
     }
+    /* En pantallas grandes se ubican a cada lado, en móviles se agrupan en la parte inferior */
     #joystick-vitrectomo-container {
       left: 20px;
+      bottom: 20px;
     }
     #joystick-light-container {
       right: 20px;
+      bottom: 20px;
     }
-    .joystick-container button {
-      margin-bottom: 5px;
-      padding: 5px 10px;
-      background-color: #3498db;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      font-size: 0.8em;
-    }
-    .joystick {
-      width: 100px;
-      height: 100px;
-      background: rgba(255, 255, 255, 0.1);
-      border: 2px solid rgba(255, 255, 255, 0.3);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      touch-action: none;
-    }
-    .joystick .joystick-handle {
-      width: 40px;
-      height: 40px;
-      background: rgba(255, 255, 255, 0.5);
-      border-radius: 50%;
-      position: relative;
-      transition: transform 0.1s ease;
-    }
-    /* ================== RESPONSIVIDAD PARA TELÉFONOS ================== */
+    /* Para móviles, se posicionan centrados y en fila */
     @media only screen and (max-width: 768px) {
+      #joystick-vitrectomo-container,
+      #joystick-light-container {
+        left: auto;
+        right: auto;
+        bottom: 10px;
+      }
+      .joysticks-wrapper {
+        position: absolute;
+        bottom: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        gap: 15px;
+      }
+      .joystick-container {
+        padding: 6px;
+      }
       #retina {
         width: 90vmin;
         height: 90vmin;
       }
       .joystick {
-        width: 80px;
-        height: 80px;
+        width: 70px;
+        height: 70px;
       }
       .joystick .joystick-handle {
-        width: 32px;
-        height: 32px;
+        width: 28px;
+        height: 28px;
       }
       .slider-container.z-control,
       input[type="range"] {
         width: 80px;
       }
-      .joystick-container {
-        bottom: 10px;
-      }
-      #joystick-vitrectomo-container {
-        left: 5%;
-      }
-      #joystick-light-container {
-        right: 5%;
-      }
       #miniMapContainer {
-        width: 250px;
-        height: 190px;
+        width: 240px;
+        height: 180px;
       }
     }
   </style>
@@ -467,31 +459,33 @@
         <path d="M400 500 L400 550" stroke="#FFB74D" stroke-width="14" stroke-linecap="round" />
       </svg>
     </div>
-    <!-- JOYSTICK CONTAINERS CON SLIDERS INTEGRADOS -->
-    <div id="joystick-vitrectomo-container" class="joystick-container">
-      <button id="toggle-vitrectomo-joystick">Activar Vitrectomo</button>
-      <div id="joystick-vitrectomo" class="joystick">
-        <div class="joystick-handle"></div>
+    <!-- CONTENEDOR AGRUPADOR PARA JOYSTICKS (en móviles se muestran en fila en la parte inferior) -->
+    <div class="joysticks-wrapper">
+      <div id="joystick-vitrectomo-container" class="joystick-container">
+        <button id="toggle-vitrectomo-joystick">Vitrectomo</button>
+        <div id="joystick-vitrectomo" class="joystick">
+          <div class="joystick-handle"></div>
+        </div>
+        <div class="slider-container z-control">
+          <label for="vitrectomo-z-slider">Z</label>
+          <input type="range" id="vitrectomo-z-slider" min="-250" max="-50" value="-150">
+        </div>
       </div>
-      <div class="slider-container z-control">
-        <label for="vitrectomo-z-slider">Vitrectomo Z:</label>
-        <input type="range" id="vitrectomo-z-slider" min="-250" max="-50" value="-150">
-      </div>
-    </div>
-    <div id="joystick-light-container" class="joystick-container">
-      <button id="toggle-light-joystick">Activar Endoiluminador</button>
-      <div id="joystick-light" class="joystick">
-        <div class="joystick-handle"></div>
-      </div>
-      <div class="slider-container z-control">
-        <label for="endo-z-slider">Endoiluminador Z (tamaño luz):</label>
-        <input type="range" id="endo-z-slider" min="0" max="200" value="50">
+      <div id="joystick-light-container" class="joystick-container">
+        <button id="toggle-light-joystick">Endoiluminador</button>
+        <div id="joystick-light" class="joystick">
+          <div class="joystick-handle"></div>
+        </div>
+        <div class="slider-container z-control">
+          <label for="endo-z-slider">Z</label>
+          <input type="range" id="endo-z-slider" min="0" max="200" value="50">
+        </div>
       </div>
     </div>
   </div>
   <script>
     // VARIABLES BASE
-    let currentDepth = -150; // para la retina
+    let currentDepth = -150;
     let currentZoom = 1;
     let rotationX = 20;
     let rotationY = 0;
@@ -510,7 +504,6 @@
     let alertMiniMapTriggered = false;
     let alertPressureTriggered = false;
     let alertDepthWarningTriggered = false;
-    // Variable de alerta para el endoiluminador (estructura)
     let alertStructureLightTriggered = false;
     // Elementos de la retina
     const retinaSphere = document.querySelector('.retina-sphere');
@@ -537,7 +530,6 @@
         translateZ(${currentDepth}px) 
         scale(${currentZoom})
       `;
-      // Efecto parallax
       const parallaxFactor = currentDepth / -150;
       bloodVessels.style.opacity = 0.3 + (parallaxFactor * 0.3);
       macula.style.opacity = 0.5 + (parallaxFactor * 0.3);
@@ -795,7 +787,7 @@
       const retinaCenterY = retinaRect.top + retinaRect.height / 2;
       const retinaRadius = retinaRect.width / 2;
       
-      // ALERTAS PARA EL VITRECTOMO: Si su posición se acerca al borde, mostramos que ha chocado
+      // ALERTAS PARA EL VITRECTOMO
       const vitX = (vitrectomoJoystickX / 100) * retinaRect.width + retinaRect.left;
       const vitY = (vitrectomoJoystickY / 100) * retinaRect.height + retinaRect.top;
       const dx = vitX - retinaCenterX;
@@ -806,7 +798,6 @@
         if (!alertStructureTriggered) {
           alertStructureTriggered = true;
           alert("¡El Vitrectomo ha chocado con la pared del ojo!");
-          // Efecto visual de colisión
           vitrectomo.classList.add("collision");
           setTimeout(() => { vitrectomo.classList.remove("collision"); }, 500);
         }
@@ -859,8 +850,7 @@
         alertMiniMapTriggered = false;
       }
       
-      // Alerta de presión alta (se usa un slider global si se necesita, en este ejemplo se usa una condición simulada)
-      // Aquí se puede mejorar la lógica de acuerdo a la necesidad
+      // Alerta de presión alta (simulada)
       if (currentDepth > -60) {
         if (!alertPressureTriggered) {
           alertPressureTriggered = true;
@@ -886,7 +876,7 @@
         alertDepthWarningTriggered = false;
       }
       
-      // ================== ALERTAS PARA EL ENDOILUMINADOR ==================
+      // ALERTAS PARA EL ENDOILUMINADOR
       const endoX = (lightJoystickX / 100) * retinaRect.width + retinaRect.left;
       const endoY = (lightJoystickY / 100) * retinaRect.height + retinaRect.top;
       const dxLight = endoX - retinaCenterX;
